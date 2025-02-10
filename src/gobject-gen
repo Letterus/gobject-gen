@@ -29,9 +29,12 @@
 import abc
 import argparse
 import os
-import gtk
 import re
 import sys
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 PACKAGE_NAME    = 'GObject Generator'
 PACKAGE_VERSION = '0.1'
@@ -474,7 +477,7 @@ class GuiGenerator(Generator):
             filename_separator)
 
         # Build the main window.
-        self.ui = gtk.Builder()
+        self.ui = Gtk.Builder()
         # Little hack, so we can call this script from any directory.
         self.ui.add_from_file(
             os.path.join(
@@ -502,7 +505,7 @@ class GuiGenerator(Generator):
 
         window = self.ui.get_object('main-window')
         window.show_all()
-        window.connect('delete-event', gtk.main_quit);
+        window.connect('delete-event', Gtk.main_quit);
 
         # Save button: generates sources to CWD
         button = self.ui.get_object('save-button')
@@ -513,7 +516,7 @@ class GuiGenerator(Generator):
         button.connect('clicked', self.save_as_button_cb, self.ui)
 
         button = self.ui.get_object('close-button')
-        button.connect('clicked', gtk.main_quit)
+        button.connect('clicked', Gtk.main_quit)
 
         button = self.ui.get_object('about-button')
         button.connect('clicked', self.about_button_clicked_cb)
@@ -528,7 +531,7 @@ class GuiGenerator(Generator):
 
     def generate(self):
         self.ui.get_object('main-window').show_all()
-        gtk.main()
+        Gtk.main()
 
     def make_template_data(self):
         self.klass = self.ui.get_object('class_camel').get_text()
@@ -567,11 +570,11 @@ class GuiGenerator(Generator):
         is_valid = self.save_button_check_validity(ui)
         if not is_valid:
             main_window = self.ui.get_object('main-window')
-            dlg = gtk.MessageDialog(
+            dlg = Gtk.MessageDialog(
                 main_window,
-                gtk.DIALOG_MODAL,
-                gtk.MESSAGE_ERROR,
-                gtk.BUTTONS_OK)
+                Gtk.DialogFlags.MODAL,
+                Gtk.MessageType.ERROR,
+                Gtk.ButtonsType.OK)
             dlg.set_title(main_window.get_title())
 
             dlg.set_markup('Class name missing!')
@@ -588,7 +591,7 @@ class GuiGenerator(Generator):
         self.save_sources(os.getcwd())
 
         # Quit when saved.
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def save_as_button_cb(self, button, ui):
         # Check for mandatory fields.
@@ -597,15 +600,15 @@ class GuiGenerator(Generator):
 
         # Get a save folder.
         folder = None
-        select_folder = gtk.FileChooserDialog(
+        select_folder = Gtk.FileChooserDialog(
             title='Select Destination',
-            action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-            buttons=(gtk.STOCK_CANCEL,
-                gtk.RESPONSE_CANCEL,
-                gtk.STOCK_OPEN,
-                gtk.RESPONSE_ACCEPT))
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            buttons=(Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OPEN,
+                Gtk.ResponseType.ACCEPT))
         select_folder.set_current_folder(os.getcwd())
-        if select_folder.run() == gtk.RESPONSE_ACCEPT:
+        if select_folder.run() == Gtk.ResponseType.ACCEPT:
             folder = select_folder.get_filename() + '/'
         select_folder.destroy()
         if folder is None:
@@ -615,7 +618,7 @@ class GuiGenerator(Generator):
         self.save_sources(folder)
 
         # Quit when saved.
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def guess_class_params_cb(self, entry):
         package_upper, object_upper, class_lower = self.guess_class_params(entry.get_text())
@@ -630,7 +633,7 @@ class GuiGenerator(Generator):
                 entry.get_text()))
 
     def about_button_clicked_cb(self, button):
-        about = gtk.AboutDialog()
+        about = Gtk.AboutDialog()
         about.set_transient_for(self.ui.get_object('main-window'))
         about.set_name(PACKAGE_NAME)
         about.set_version(PACKAGE_VERSION)
